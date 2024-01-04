@@ -1,100 +1,147 @@
+CREATE DATABASE Attendace;
+USE Attendace;
+-- Table for User Profiles
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    user_type ENUM('student', 'teacher', 'administrator') NOT NULL
+);
+
+-- Table for Students
+CREATE TABLE students (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    dob DATE NOT NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL,
+    address VARCHAR(200) NOT NULL,
+    session VARCHAR(100) NOT NULL,
+    program VARCHAR(100) NOT NULL,
+    semester VARCHAR(100) NOT NULL
+);
+
+-- Table for Teachers
+CREATE TABLE teachers (
+    teacher_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    dob DATE NOT NULL,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL,
+    degree VARCHAR(100) NOT NULL,
+    salary DECIMAL(10, 2) NOT NULL,
+    address VARCHAR(200) NOT NULL
+);
+
+-- Table for Classes or Subjects
+CREATE TABLE subjects (
+    subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_name VARCHAR(100) NOT NULL,
+    teacher_id INT,
+    field VARCHAR(50) NOT NULL,
+    semester VARCHAR(100) NOT NULL,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(teacher_id)
+);
+
+-- Table for Attendance Records
+CREATE TABLE attendance_records (
+    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    subject_id INT,
+    attendance_status ENUM('present', 'absent') NOT NULL,
+    date DATE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id)
+);
+
+-- Add user_id column to students table
+ALTER TABLE students
+ADD COLUMN user_id INT,
+ADD FOREIGN KEY (user_id) REFERENCES users(user_id);
+
+-- Add user_id column to teachers table
+ALTER TABLE teachers
+ADD COLUMN user_id INT,
+ADD FOREIGN KEY (user_id) REFERENCES users(user_id);
+
+-- Insert values into the 'users' table
+INSERT INTO users (user_id, username, password, user_type)
+VALUES
+    (001 ,'student1', 'password1', 'student'),
+    (002, 'student2', 'password2', 'student'),
+    (101, 'teacher1', 'password3', 'teacher'),
+    (102, 'teacher2', 'password4', 'teacher'),
+    (201, 'admin1', 'password5', 'administrator');
+
+-- Insert values into the 'students' table
+INSERT INTO students (user_id, student_name, dob, gender, email, phone, address, session, program, semester)
+VALUES
+    (001, 'John Doe', '2000-01-15', 'male', 'john.doe@email.com', '123-456-7890', '123 Main St', '2023A', 'Computer Science', 'Spring 2023'),
+    (002, 'Alice Smith', '1999-05-20', 'female', 'alice.smith@email.com', '987-654-3210', '456 Elm St', '2023B', 'Biology', 'Spring 2023');
+
+-- Insert values into the 'teachers' table
+INSERT INTO teachers (user_id, first_name, last_name, dob, gender, email, phone, degree, salary, address)
+VALUES
+    (101, 'Professor', 'Johnson', '1975-08-10', 'male', 'prof.johnson@email.com', '555-123-4567', 'Ph.D. in Chemistry', 60000.00, '789 Oak Ave'),
+    (102, 'Dr. Mary', 'White', '1980-03-25', 'female', 'dr.mary.white@email.com', '777-987-6543', 'M.Sc. in Physics', 55000.00, '101 Pine St');
+
+-- Insert values into the 'subjects' table
+INSERT INTO subjects (subject_id, subject_name, field, semester)
+VALUES
+    (1101, 'Math 101', 'Mathematics', 'Spring 2023'),
+    (1102, 'Chemistry 202', 'Chemistry', 'Spring 2023'),
+    (1103, 'Biology 301', 'Biology', 'Spring 2023');
+
+-- Insert values into the 'attendance_records' table
+-- Assuming user_id and subject_id values correspond to existing users and subjects
+INSERT INTO attendance_records (user_id, subject_id, attendance_status, date)
+VALUES
+    (001, 1101, 'present', '2023-11-01'),
+    (002, 1102, 'absent', '2023-11-01');
+    
+CREATE VIEW student_subjects_view AS
+SELECT
+    s.student_name AS StudentName,
+    s.program AS Program,
+    t.first_name AS TeacherFirstName,
+    t.last_name AS TeacherLastName,
+    sub.subject_name AS SubjectName
+FROM students s
+JOIN attendance_records ar ON s.user_id = ar.user_id
+JOIN subjects sub ON ar.subject_id = sub.subject_id
+JOIN teachers t ON sub.teacher_id = t.teacher_id;
+
+-- using select operation
+SELECT * FROM students WHERE session = '2023A';
+
+-- using delete operation
+DELETE FROM students WHERE student_id = 001;
+SELECT * FROM students;
+
+-- using update operation
+UPDATE teachers
+SET email = 'newemail@example.com'
+WHERE teacher_id = 101;
+SELECT * FROM teachers;
+
+-- other operations
+SELECT * FROM teachers
+WHERE salary = (SELECT MAX(salary) FROM teachers);
+
 /*
-SQLyog - Free MySQL GUI v5.17
-Host - 5.5.1-m2-community : Database - attendance
-*********************************************************************
-Server version : 5.5.1-m2-community
+-- Drop all views
+DROP VIEW IF EXISTS student_subjects_view;
+
+-- Drop all tables
+DROP TABLE IF EXISTS attendance_records;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS teachers;
+DROP TABLE IF EXISTS users;
+
+-- Drop the database "Attendace"
+DROP DATABASE IF EXISTS Attendance;
 */
-
-SET NAMES utf8;
-
-SET SQL_MODE='';
-
-create database if not exists `attendance`;
-
-USE `attendance`;
-
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
-
-/*Table structure for table `attend1` */
-
-DROP TABLE IF EXISTS `attend1`;
-
-CREATE TABLE `attend1` (
-  `date` varchar(30) DEFAULT NULL,
-  `subject_id` varchar(30) NOT NULL,
-  `student_id` varchar(30) DEFAULT NULL,
-  'attendance' varchar(11) DEFAULT NULL,
-  PRIMARY KEY (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `attend1` */
-
-insert into `attend1` (`date`,`subject_id`,`student_id`,`attendance`) values ('2022-10-01','001','25','001','present');
-insert into `attend1` (`date`,`subject_id`,`student_id`,`attendance`) values ('2022-10-02','002','35','002','present');
-insert into `attend1` (`date`,`subject_id`,`student_id`,`attendance`) values ('2022-10-03','003','40','003','present');
-
-/*Table structure for table `faculty` */
-
-DROP TABLE IF EXISTS `faculty`;
-
-CREATE TABLE `faculty` (
-  `faculty_id` varchar(30) NOT NULL,
-  `ffullname` varchar(30) DEFAULT NULL,
-  'email' varchar(64) DEFAULT NULL,
-  `password` varchar(30) DEFAULT NULL,
-  `contact` varchar(30) DEFAULT NULL,
-  `salary` varchar(30) DEFAULT NULL,
-
-  PRIMARY KEY (`faculty_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `faculty` */
-
-insert into `faculty` (`faculty_id`,`fullname`,`email`,`password`,`contact`,`salary`) values ('001','Ankit Mehra','ankit001@college','ankit','9900998729','25000');
-insert into `faculty` (`faculty_id`,`fullname`,`email`,`password`,`contact`,`salary`,) values ('002','Sonu Nigam','sonu002@college','sonu','9900878987','30000');
-insert into `faculty` (`faculty_id`,`fullname`,`email`,`password`,`contact`,`salary`,) values ('003','Katrina Kaif','katrina003@college','katrina','9425022909','25000');
-
-/*Table structure for table `student` */
-
-DROP TABLE IF EXISTS `student`;
-
-CREATE TABLE `student` (
-  `student_id` varchar(30) NOT NULL,
-  `sfullname` varchar(30) DEFAULT NULL,
-  `password` varchar(30) DEFAULT NULL,
-  'DOB' date DEFAULT NULL,
-  'email' varchar(64) DEFAULT NULL,
-  `contact` varchar(30) DEFAULT NULL,
- 
-  PRIMARY KEY (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `student` */
-
-insert into `student` (`student_id`,`sfullname,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('001','Kaushal Arora','Kaushal','2003-10-07','kaushal001@college','9988776655');
-insert into `student` (`student_id`,`sfullname`,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('002','Rajeev Singh','Rajeev','2003-07-05','rajeev002@college','9900998877');
-insert into `student` (`student_id`,`sfullname,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('003','Pooja Agrawal','Pooja','2003-05-03','pooja003@college','9008899009');
-insert into `student` (`student_id`,`sfullname``,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('004','Akshay Kumar','Akshay','2003-01-27','akshay004@college','9425099800');
-insert into `student` (`student_id`,`sfullname`,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('005','Ranbir Kapoor','Ranbir','2003-03-12','ranbir005@college','9425077229');
-insert into `student` (`student_id`,`sfullname`,`userid`,`pass`,`gender`,`contact`,`batchid`) values ('006','Yogita Mehra','Yogita','2003-10-23','yogita108@college','9425099089');
-
-/*Table structure for table `subject` */
-
-DROP TABLE IF EXISTS `subject`;
-
-CREATE TABLE `subject` (
-  `subject_id` varchar(30) NOT NULL,
-  `subject_name` varchar(30) DEFAULT NULL,
-  `ffullname` varchar(30) DEFAULT NULL,
-  PRIMARY KEY (`subject_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-/*Data for the table `subject` */
-
-insert into `subject` (`subject_id`,`subject_name`,`ffullname`) values ('201','Core java','Ankit Mehra');
-insert into `subject` (`subject_id`,`subject_name`,`ffullname`) values ('202','Advance Java' ,'Sonu Nigam');
-insert into `subject` (`subject_id`,`subject_name`,`ffullname`) values ('203','PHP','Katrina Kaif');
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
